@@ -764,13 +764,27 @@ function progress(arrayOfArrays) {
 
 
 function openFinder(path, callback) {
-	path = path || '/';
-	let p = spawn('open', [path]);
-	p.on('error', (err) => {
-		p.kill();
-		return callback(err);
-	});
-};
+    path = path || '/';
+    
+    // Check if callback is a function
+    if (typeof callback !== 'function') {
+        throw new TypeError('Callback must be a function');
+    }
+
+    let p = spawn('open', [path]);
+    
+    p.on('error', (err) => {
+        p.kill();
+        callback(err);
+    });
+
+    p.on('exit', (code) => {
+        if (code === 0) {
+            callback(null); // Success
+        } else {
+            callback(new Error(`Process exited with code ${code}`));
+        }
+    });
 
 function getUniqueKeys(data) {
 	const keysSet = new Set();
